@@ -1,96 +1,43 @@
+//UPDATED VERSION
+
+
 document.addEventListener('DOMContentLoaded', () => {
-    const settingsModal = document.getElementById('settings-modal');
-    const apiKeyInput = document.getElementById('api-key-input');
-    const saveKeyBtn = document.getElementById('save-key-btn');
-    const paramsBtn = document.getElementById('params-btn');
     const chatHistory = document.getElementById('chat-history');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
 
-    let apiKey = localStorage.getItem('openai_api_key');
-
-    // --- State Management ---
-    if (!apiKey) {
-        settingsModal.classList.add('active');
-    }
-
-    saveKeyBtn.addEventListener('click', () => {
-        const key = apiKeyInput.value.trim();
-        if (key) {
-            apiKey = key;
-            localStorage.setItem('openai_api_key', key);
-            settingsModal.classList.remove('active');
-            addMessage('system', 'API Key saved! You can now start chatting.');
-        } else {
-            alert('Please enter a valid API Key.');
-        }
-    });
-
-    paramsBtn.addEventListener('click', () => {
-        apiKeyInput.value = apiKey || '';
-        settingsModal.classList.add('active');
-    });
-
-    // Close modal when clicking outside content
-    settingsModal.addEventListener('click', (e) => {
-        if (e.target === settingsModal && apiKey) {
-            settingsModal.classList.remove('active');
-        }
-    });
-
-    // --- Chat Logic ---
     async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
 
-        if (!apiKey) {
-            settingsModal.classList.add('active');
-            return;
-        }
-
         // Add user message
         addMessage('user', text);
         userInput.value = '';
-        userInput.style.height = 'auto'; // Reset height
+        userInput.style.height = 'auto';
 
-        // Show loading state (optional, or just wait)
+        // Show loading
         const loadingId = addMessage('bot', 'Thinking... 🎵');
 
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            // Call your Flask backend
+            const response = await fetch('http://127.0.0.1:5000/chat', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-4o", // Using a widely available model
-                    messages: [
-                        {
-                            role: "system",
-                            content: `You are a helpful assistant that answers clearly.
-                                      You are specialized in music and you can answer to every question about music.
-                                      Avoid unnecessary jargon.
-                                      The users can sing songs, write lyrics, etc and you will be able to play the continuing of the song.`
-                        },
-                        { role: "user", content: text }
-                    ]
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: text })
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error?.message || 'API Error');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Server Error: ${response.status}`);
             }
 
             const data = await response.json();
-            const aiText = data.choices[0].message.content;
+            const aiText = data.response;
 
-            // Update loading message with actual response
             updateMessage(loadingId, aiText);
 
         } catch (error) {
-            updateMessage(loadingId, `Error: ${error.message}. Please check your API Key in settings.`);
+            updateMessage(loadingId, `Error: ${error.message}. Make sure the backend is running!`);
             console.error(error);
         }
     }
@@ -104,10 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const contentDiv = document.createElement('div');
         contentDiv.classList.add('message-content');
-        
-        // Simple markdown parsing for bold/italic could be added here if needed
-        // For now, we'll just set textContent to avoid XSS, but let's allow basic newlines
-        contentDiv.innerText = text; 
+        contentDiv.innerText = text;
 
         msgDiv.appendChild(contentDiv);
         chatHistory.appendChild(msgDiv);
@@ -139,9 +83,103 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Auto-resize textarea
-    userInput.addEventListener('input', function() {
+    userInput.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
-        if(this.value === '') this.style.height = '50px';
+        if (this.value === '') this.style.height = '50px';
     });
 });
+
+
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     const chatHistory = document.getElementById('chat-history');
+//     const userInput = document.getElementById('user-input');
+//     const sendBtn = document.getElementById('send-btn');
+
+    
+
+//     async function sendMessage() {
+//         const text = userInput.value.trim();
+//         if (!text) return;
+
+//         // Add user message
+//         addMessage('user', text);
+//         userInput.value = '';
+//         userInput.style.height = 'auto';
+
+//         // Show loading
+//         const loadingId = addMessage('bot', 'Thinking... 🎵');
+
+//         try {
+//             // Call your backend instead of OpenAI directly
+//             const response = await fetch('http://127.0.0.1:5000/chat', {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify({ prompt: text })
+//             });
+
+//             if (!response.ok) {
+//                 const errorData = await response.json().catch(() => ({}));
+//                 throw new Error(errorData.error || `Server Error: ${response.status}`);
+//             }
+
+//             const data = await response.json();
+//             const aiText = data.response;
+
+//             updateMessage(loadingId, aiText);
+
+//         } catch (error) {
+//             updateMessage(loadingId, `Error: ${error.message}. Is the backend running?`);
+//             console.error(error);
+//         }
+//     }
+
+//     // --- UI Helpers ---
+//     function addMessage(role, text) {
+//         const msgDiv = document.createElement('div');
+//         msgDiv.classList.add('message', role);
+//         const id = Date.now().toString(); // unique ID
+//         msgDiv.dataset.id = id;
+
+//         const contentDiv = document.createElement('div');
+//         contentDiv.classList.add('message-content');
+
+//         contentDiv.innerText = text;
+
+//         msgDiv.appendChild(contentDiv);
+//         chatHistory.appendChild(msgDiv);
+//         scrollToBottom();
+//         return id;
+//     }
+
+//     function updateMessage(id, newText) {
+//         const msgDiv = chatHistory.querySelector(`.message[data-id="${id}"]`);
+//         if (msgDiv) {
+//             const contentDiv = msgDiv.querySelector('.message-content');
+//             contentDiv.innerText = newText;
+//             scrollToBottom();
+//         }
+//     }
+
+//     function scrollToBottom() {
+//         chatHistory.scrollTop = chatHistory.scrollHeight;
+//     }
+
+//     // --- Event Listeners ---
+//     sendBtn.addEventListener('click', sendMessage);
+
+//     userInput.addEventListener('keydown', (e) => {
+//         if (e.key === 'Enter' && !e.shiftKey) {
+//             e.preventDefault();
+//             sendMessage();
+//         }
+//     });
+
+//     // Auto-resize textarea
+//     userInput.addEventListener('input', function () {
+//         this.style.height = 'auto';
+//         this.style.height = (this.scrollHeight) + 'px';
+//         if (this.value === '') this.style.height = '50px';
+//     });
+// });
