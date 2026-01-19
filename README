@@ -1,0 +1,46 @@
+CHATBOT
+overview-the main explanation
+A simple AI chatbot built with Python Flask as the backend and JavaScript/HTML as the frontend.  
+It accepts user messages, sends them to the Flask API, and returns AI-generated responses using OpenAI’s API.
+
+Features
+Flask backend API for chat responses
+Frontend chat UI using vanilla JS
+Connects to OpenAI models (GPT‑type)
+Spotify API integration
+
+Technologies Used
+- Python  
+- Flask  
+- JavaScript  +++
+- HTML / CSS  
+- Spotipy for Spotify API  
+- Supabase client  
+- OpenAI’s API
+
+Required stuff to download so it works the way it should
+Python 3.x
+OpenAI API key
+Spotify API credentials
+Supabase credentials
+
+Installation
+git clone https://github.com/tumo-hasmik/Chatbot.git
+cd Chatbot
+Create Python environment!
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+
+Running the app
+python example.py   || if it doesn't work you can try python3!!
+
+Environment Variables
+SPOTIFY_CLIENT_ID
+SPOTIFY_CLIENT_SECRET
+OPENAI_API_KEY
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+
+Example Usage
+You double click on index.html and open it in the browser,then ask my Melody AI everything you want(music) and she answers you!!
