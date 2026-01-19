@@ -2,7 +2,7 @@
 #HUYS UNEM ARDEN PATRASTA HORS AREV
 
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -16,8 +16,7 @@ os.getenv("SPOTIFY_CLIENT_SECRET")
 
 
 load_dotenv()
-app = Flask(__name__)
-CORS(app)
+app = Flask(__name__, static_folder="static", static_url_path="")
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_id=os.getenv("SPOTIFY_CLIENT_ID"),
@@ -53,6 +52,11 @@ system_prompt = [
     {"role": "system",
      "content": f"You are a music-specialized chatbot. Use this knowledge:\n{sheet_content}"}
 ]
+
+@app.route("/")
+def index():
+    return send_from_directory("static", "index.html")
+
 @app.route("/spotify", methods=["POST"])
 def spotify_info():
     query = request.json.get("artist")  # or song/album
@@ -67,6 +71,10 @@ def chat():
 
     response = client.responses.create(model="gpt-5-nano", input=messages)
     return jsonify({"response": response.output_text})
+
+@app.get("/<path:path>")
+def static_files(path):
+    return send_from_directory("static", path)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
