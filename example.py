@@ -14,6 +14,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 os.getenv("SPOTIFY_CLIENT_ID")
 os.getenv("SPOTIFY_CLIENT_SECRET")
 
+client = OpenAI(api_key = os.environ.get("OPENAI_API_KEY"))
 
 load_dotenv()
 app = Flask(__name__, static_folder="static", static_url_path="")
@@ -41,6 +42,26 @@ sheet_content = "\n".join([
     f"{doc.get('topic', doc.get('title', 'No Title'))}: {doc.get('content', 'No Content')}"
     for doc in documents
 ])
+
+rag_message = {
+    "role": "system",
+    "content": (
+        "Use the retrieved context below to answer. If it doesn't contain the answer, say so. \n\n"
+        f"RETRIEVED CONTEXT:\n{context if context else '(no matches)'}"
+    ) }
+
+full_user_message = {
+        "role": "user",
+        "content": user_message
+    }
+
+full_message = [rag_message, full_user_message, system_prompt]
+
+resp = client.responses.create(
+        model = "gpt-5-nano",
+        input=full_message
+    )
+
 # sheet_content = ""
 # for doc in documents:
 #     topic = doc.get('topic') or doc.get('title') or "No Title"
