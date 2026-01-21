@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
+from prompts import system_prompt1, system_prompt2
 import os
 from supabase import create_client
 import spotipy
@@ -23,31 +24,6 @@ client = OpenAI(api_key = os.environ.get("OPENAI_API_KEY"))
 #     f"{doc.get('topic', doc.get('title', 'No Title'))}: {doc.get('content', 'No Content')}"
 #     for doc in documents
 # ])
-
-system_prompt1 = {
-    "role" : "system",
-    "content" : (
-        "You are a music-specialized chatbot. Use this knowledge"
-    )
-}
-
-
-system_prompt2 = {
-    "role" : "system",
-    "content" : (
-         "You are an expert linguist and language-learning coach. "
-                   "You ALWAYS give structured answers.\n\n"
-                   "Follow this exact structure when answering:\n"
-                   "1. Short overview (1–2 sentences)\n"
-                   "2. Step-by-step guidance (numbered list)\n"
-                   "3. Practical tips or examples (bullet points)\n"
-                   "4. Common mistakes to avoid\n"
-                   "5. Clear next steps\n\n"
-                   "Use headings, keep explanations clear and concise, "
-                   "and adapt advice to the specific language mentioned by the user.\n\n"
-    
-    )
-}
                 
 # takes in the string and outputs a vector
 def embed_query(text: str) -> list[float]:
